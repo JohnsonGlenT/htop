@@ -270,6 +270,13 @@ void LibSensors_getCPUTemperatures(CPUData* cpus, unsigned int existingCPUs, uns
          }
       }
 
+      FILE* f = fopen("ryzen.log", "a+");
+      fprintf(f, "CoreTempCount: %d\n", coreTempCount);
+      fprintf(f, "ExistingCPUs:  %d\n", existingCPUs);
+      fprintf(f, "Cores in Die:  %d\n", coresInDie);
+      fprintf(f, "Count: %d\n", coreTempCount);
+
+
       /* Returns to conditional checking if no temp is found  */
       if (!isnan(temp[0])) {
          // Set Temperature
@@ -277,10 +284,13 @@ void LibSensors_getCPUTemperatures(CPUData* cpus, unsigned int existingCPUs, uns
          for (unsigned int die = 0; die < coreTempCount; die++) {
             for (unsigned int i = 1; i <= coresInDie; i++) {
                data[(die * coresInDie) + i] = temp[die];
+               fprintf(f, "\tdata: %f, data index: %3d, die: %3d, i: %3d\n", temp[die], ((die * coresInDie) + i), die, i);
             }
          }
 
          /* No further adjustments */
+         fprintf(f, "\n");
+         fclose(f);
          goto out;
       }
       /* AMD Zen CPU can report coreTempCount as 1 - returns if temps are not reported as expected */
