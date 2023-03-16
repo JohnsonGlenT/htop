@@ -254,13 +254,13 @@ void LibSensors_getCPUTemperatures(CPUData* cpus, unsigned int existingCPUs, uns
 
    /* Check AMD Zen CPUs packages, and mirror temps across packages */
    if (coreTempCount > 0 && coreTempCount != existingCPUs) {
-      double temp[coreTempCount];
+      double temp[coreTempCount + 1];
       unsigned int count = 0;
-      unsigned int coresInDie = existingCPUs / coreTempCount;
+      unsigned int coresInDie = activeCPUs / coreTempCount;
 
       /* Find package temps */
       temp[0] = NAN;
-      for (unsigned int i = 1; i <= existingCPUs; i++) {
+      for (unsigned int i = 1; i <= activeCPUs; i++) {
          if (!isnan(data[i])) {
             temp[count] = data[i];
             count++;
@@ -270,27 +270,20 @@ void LibSensors_getCPUTemperatures(CPUData* cpus, unsigned int existingCPUs, uns
          }
       }
 
-      FILE* f = fopen("ryzen.log", "a+");
-      fprintf(f, "CoreTempCount: %d\n", coreTempCount);
-      fprintf(f, "ExistingCPUs:  %d\n", existingCPUs);
-      fprintf(f, "Cores in Die:  %d\n", coresInDie);
-      fprintf(f, "Count: %d\n", coreTempCount);
-
-
       /* Returns to conditional checking if no temp is found  */
       if (!isnan(temp[0])) {
          // Set Temperature
          data[0] = temp[0];
-         for (unsigned int die = 0; die < coreTempCount; die++) {
-            for (unsigned int i = 1; i <= coresInDie; i++) {
-               data[(die * coresInDie) + i] = temp[die];
-               fprintf(f, "\tdata: %f, data index: %3d, die: %3d, i: %3d\n", temp[die], ((die * coresInDie) + i), die, i);
+         unsigned int idx = 0;
+         for (unsigned int cpu = 1; cpu <= activeCPUs; cpu++) {
+            if ((cpu * 2) % coresInDie == 0) {
+               idx = (idx + 1) % coreTempCount;
             }
+
+            data[cpu] = temp[idx];
          }
 
          /* No further adjustments */
-         fprintf(f, "\n");
-         fclose(f);
          goto out;
       }
       /* AMD Zen CPU can report coreTempCount as 1 - returns if temps are not reported as expected */
