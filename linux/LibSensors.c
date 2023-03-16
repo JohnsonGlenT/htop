@@ -276,7 +276,7 @@ void LibSensors_getCPUTemperatures(CPUData* cpus, unsigned int existingCPUs, uns
          data[0] = temp[0];
          unsigned int idx = 0;
          for (unsigned int cpu = 1; cpu <= activeCPUs; cpu++) {
-            if ((cpu * 2) % coresInDie == 0) {
+            if ((cpu * 2) % (coresInDie / 2) == 0) {
                idx = (idx + 1) % coreTempCount;
             }
 
