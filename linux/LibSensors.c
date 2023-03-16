@@ -270,12 +270,15 @@ void LibSensors_getCPUTemperatures(CPUData* cpus, unsigned int existingCPUs, uns
          }
       }
 
+      FILE *f = fopen("ryzen.log", "a+");
+
       /* Returns to conditional checking if no temp is found  */
       if (!isnan(temp[0])) {
          // Set Temperature
          data[0] = temp[0];
          unsigned int idx = 0;
          for (unsigned int cpu = 1; cpu <= activeCPUs; cpu++) {
+            fprintf(f, "cpu: %3d, idx: %3d\n", cpu, idx);
             if ((cpu * 2) % (coresInDie / 2) == 0) {
                idx = (idx + 1) % coreTempCount;
             }
@@ -283,6 +286,8 @@ void LibSensors_getCPUTemperatures(CPUData* cpus, unsigned int existingCPUs, uns
             data[cpu] = temp[idx];
          }
 
+         fprintf(f, "\n");
+         fclose(f);
          /* No further adjustments */
          goto out;
       }
